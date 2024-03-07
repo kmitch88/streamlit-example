@@ -29,7 +29,7 @@ def calculate_probability(numbers, winning_numbers, historical_data):
     return f"The probability of having exactly {winning_numbers} winning numbers is: {probability_percentage:.6f}%. Your selected numbers have matched {winning_numbers} winning numbers in past draws {partial_match_count} times."
 
 # Load historical data
-historical_data = pd.read_csv("//workspaces/streamlit-example/649.csv")
+historical_data = pd.read_csv("649.csv")
 historical_data['AggregatedNumbers'] = historical_data.apply(lambda row: [row[f'NUMBER DRAWN {i}'] for i in range(1, 7)], axis=1)
 
 # Streamlit app UI setup
