@@ -6,7 +6,7 @@ from math import factorial
 def combinations(n, k):
     return factorial(n) / (factorial(k) * factorial(n - k))
 
-# Updated function to work with your DataFrame structure and handle partial matches
+# DataFrame structure and handle partial matches
 def calculate_probability(numbers, winning_numbers, historical_data):
     n_combinations_ticket = combinations(6, winning_numbers)
     n_combinations_remaining = combinations(43, 6 - winning_numbers)
