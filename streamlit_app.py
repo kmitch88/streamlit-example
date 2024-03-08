@@ -1,12 +1,27 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from math import factorial
 
 # Function for calculating combinations
 def combinations(n, k):
     return factorial(n) / (factorial(k) * factorial(n - k))
 
-# DataFrame structure and handle partial matches
+# Function to calculate partial matches in historical data
+def calculate_partial_matches(numbers, historical_data):
+    match_counts = {n: 0 for n in range(2, 6)}
+
+    for index, row in historical_data.iterrows():
+        draw_numbers = set(row['AggregatedNumbers'])
+        user_numbers_set = set(numbers)
+        match_count = len(user_numbers_set.intersection(draw_numbers))
+
+        if match_count in match_counts:
+            match_counts[match_count] += 1
+
+    return match_counts
+
+# Function to calculate the probability of winning
 def calculate_probability(numbers, winning_numbers, historical_data):
     n_combinations_ticket = combinations(6, winning_numbers)
     n_combinations_remaining = combinations(43, 6 - winning_numbers)
@@ -16,17 +31,10 @@ def calculate_probability(numbers, winning_numbers, historical_data):
     probability = successful_outcomes / n_combinations_total
     probability_percentage = probability * 100
 
-    # Adjust the logic to count partial matches
-    partial_match_count = 0
-    for index, row in historical_data.iterrows():
-        draw_numbers = set(row['AggregatedNumbers'])  # Convert list to set for efficient lookups
-        user_numbers_set = set(numbers)  # Ensure user numbers are also in a set
-        match_count = len(user_numbers_set.intersection(draw_numbers))
+    partial_match_counts = calculate_partial_matches(numbers, historical_data)
+    partial_match_count = partial_match_counts.get(winning_numbers, 0)
 
-        if match_count == winning_numbers:
-            partial_match_count += 1
-
-    return f"The probability of having exactly {winning_numbers} winning numbers is: {probability_percentage:.6f}%. Your selected numbers have matched {winning_numbers} winning numbers in past draws {partial_match_count} times."
+    return f"The probability of having exactly {winning_numbers} winning numbers is: {probability_percentage:.6f}%. Your selected numbers have matched {winning_numbers} winning numbers in past draws {partial_match_count} times.", partial_match_counts
 
 # Load historical data
 historical_data = pd.read_csv("649.csv")
@@ -46,7 +54,17 @@ if st.button('Calculate Probability'):
     numbers_list = [int(n.strip()) for n in user_numbers.split(',') if n.strip().isdigit()]
 
     if len(numbers_list) == 6 and all(1 <= n <= 49 for n in numbers_list) and len(set(numbers_list)) == 6:
-        result = calculate_probability(numbers_list, winning_numbers, historical_data)
-        st.success(result)
+        message, match_counts = calculate_probability(numbers_list, winning_numbers, historical_data)
+        st.success(message)
+        
+        # Plotting the frequency of partial matches
+        match_data = pd.DataFrame({
+            'Match Count': list(match_counts.keys()),
+            'Frequency': list(match_counts.values())
+        })
+        
+        fig = px.bar(match_data, x='Match Count', y='Frequency', title='Frequency of Partial Matches in Historical Draws')
+        st.plotly_chart(fig)
+        
     else:
         st.error("Please enter exactly six unique numbers, each between 1 and 49.")
