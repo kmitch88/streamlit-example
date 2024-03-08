@@ -64,6 +64,7 @@ if st.button('Calculate Probability'):
         })
         
         fig = px.bar(match_data, x='Match Count', y='Frequency', title='Frequency of Partial Matches in Historical Draws')
+        fig.update_xaxes(tickmode='array', tickvals=match_data['Match Count'])
         st.plotly_chart(fig)
         
     else:
